@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "hackathon"
+version = "0.1.0"
+description = ""
+authors = ["Alan Bidart <alanbidart@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+qiskit = {extras = ["visualization"], version = "^1.2.4"}
+qiskit-aer = "^0.15.1"
+qiskit-ibm-runtime = "^0.33.2"
+matplotlib = "^3.9.2"
+pylatexenc = "^2.10"
+qc-grader = {git = "https://github.com/qiskit-community/Quantum-Challenge-Grader.git"}
+jupyter = "^1.1.1"
+pygame = "^2.6.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
