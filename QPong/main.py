@@ -60,7 +60,7 @@ def main():
     flags = DOUBLEBUF | HWSURFACE | FULLSCREEN
     screen = pygame.display.set_mode(WINDOW_SIZE, flags)
 
-    pygame.display.set_caption("QPong")
+    pygame.display.set_caption("Qahoot!")
 
     # clock for timing
     clock = pygame.time.Clock()
@@ -71,28 +71,17 @@ def main():
     level = Level()
     input = Input()
 
-    # define ball
-    ball = Ball()
-    balls = (
-        pygame.sprite.Group()
-    )  # sprite group type is needed for sprite collide function in pygame
-    balls.add(ball)
 
     # Show start screen to select difficulty
-    input.running = scene.start(screen, ball)  # start screen returns running flag
-    level.setup(scene, ball)
+    input.running = scene.start(screen)  # start screen returns running flag
+    level.setup(scene)
 
     # Put all moving sprites a group so that they can be drawn together
     moving_sprites = pygame.sprite.Group()
-    moving_sprites.add(ball)
-    moving_sprites.add(level.left_paddle)
-    moving_sprites.add(level.right_paddle)
+    moving_sprites.add(level.selection)
 
     # update the screen
     pygame.display.flip()
-
-    # reset the ball
-    ball.reset()
 
     # a valuable to record the time when the paddle is measured
     measure_time = 100000
@@ -104,69 +93,58 @@ def main():
         # refill whole screen with black color at each frame
         screen.fill(BLACK)
 
-        ball.update()  # update ball position
-        scene.dashed_line(screen, ball)  # draw dashed line in the middle of the screen
-        scene.score(screen, ball)  # print score
+        # scene.dashed_line(screen)  # draw dashed line in the middle of the screen
+        scene.score(screen)  # print score
+        scene.questions(screen)
 
         # level.statevector_grid.display_statevector(scene.qubit_num) # generate statevector grid
-        level.right_statevector.draw(
-            screen
-        )  # draw right paddle together with statevector grid
+        level.right_statevector.draw(screen)
         level.circuit_grid.draw(screen)  # draw circuit grid
         moving_sprites.draw(screen)  # draw moving sprites
 
-        # Show game over screen if the score reaches WIN_SCORE, reset everything if replay == TRUE
-        if ball.score.get_score(CLASSICAL_COMPUTER) >= WIN_SCORE:
-            scene.gameover(screen, CLASSICAL_COMPUTER)
-            scene.replay(
-                screen, ball.score, level.circuit_grid_model, level.circuit_grid
-            )
-            input.update_paddle(level, screen, scene)
-
-        if ball.score.get_score(QUANTUM_COMPUTER) >= WIN_SCORE:
-            scene.gameover(screen, QUANTUM_COMPUTER)
-            scene.replay(
-                screen, ball.score, level.circuit_grid_model, level.circuit_grid
-            )
-            input.update_paddle(level, screen, scene)
+        # TODO: gameover logic
+        if scene.question_number >= 123:
+            pass
 
         # computer paddle movement
         if pygame.time.get_ticks() - old_clock > 300:
-            level.left_paddle.rect.y = (
-                ball.get_ypos()
-                - level.statevector_grid.block_size / 2
-                + random.randint(-WIDTH_UNIT * 4, WIDTH_UNIT * 4)
-            )
+
+            # level.left_paddle.rect.y = (
+            #     ball.get_ypos()
+            #     - level.statevector_grid.block_size / 2
+            #     + random.randint(-WIDTH_UNIT * 4, WIDTH_UNIT * 4)
+            # )
             old_clock = pygame.time.get_ticks()
 
         # handle input events
         input.handle_input(level, screen, scene)
+        input.update_answer_choice(level, screen, scene)
 
         # check ball location and decide what to do
-        ball.action()
+        # ball.action()
 
-        if ball.ball_action == MEASURE_RIGHT:
-            circuit = level.circuit_grid_model.construct_circuit()
-            pos = level.statevector_grid.paddle_after_measurement(
-                circuit, scene.qubit_num
-            )
-            level.right_statevector.arrange()
+        # if ball.ball_action == MEASURE_RIGHT:
+        #     circuit = level.circuit_grid_model.construct_circuit()
+        #     pos = level.statevector_grid.paddle_after_measurement(
+        #         circuit, scene.qubit_num
+        #     )
+        #     level.right_statevector.arrange()
 
-            # paddle after measurement
-            level.right_paddle.rect.y = pos * ball.screenheight / (2**scene.qubit_num)
-            measure_time = pygame.time.get_ticks()
+        #     # paddle after measurement
+        #     level.right_paddle.rect.y = pos * ball.screenheight / (2**scene.qubit_num)
+        #     measure_time = pygame.time.get_ticks()
 
-        if pygame.sprite.spritecollide(level.right_paddle, balls, False):
-            ball.bounce_edge()
+        # if pygame.sprite.spritecollide(level.right_paddle, balls, False):
+        #     ball.bounce_edge()
 
-        if pygame.sprite.spritecollide(level.left_paddle, balls, False):
-            ball.bounce_edge()
+        # if pygame.sprite.spritecollide(level.left_paddle, balls, False):
+        #     ball.bounce_edge()
 
-        if pygame.time.get_ticks() - measure_time > 400:
-            # refresh the screen a moment after measurement to update visual
-            input.update_paddle(level, screen, scene)
-            # add a buffer time before measure again
-            measure_time = pygame.time.get_ticks() + 100000
+        # if pygame.time.get_ticks() - measure_time > 400:
+        #     # refresh the screen a moment after measurement to update visual
+        #     input.update_paddle(level, screen, scene)
+        #     # add a buffer time before measure again
+        #     measure_time = pygame.time.get_ticks() + 100000
 
         # Update the screen
         pygame.display.flip()

@@ -152,7 +152,6 @@ class CircuitGridModel:
 
         for column_num in range(self.max_columns):
             for wire_num in range(self.max_wires):
-                print(column_num, wire_num)
                 node = self.nodes[wire_num][column_num]
                 attr = []
                 args = []

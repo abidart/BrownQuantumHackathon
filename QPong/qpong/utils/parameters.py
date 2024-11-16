@@ -51,6 +51,30 @@ NOTHING = 0
 YES = 1
 NO = 0
 
+ANSWER_WIDTH = WIDTH_UNIT * 20
+ANSWER_HEIGHT = WIDTH_UNIT * 6
+QUESTION_WIDTH = WIDTH_UNIT * 70
+QUESTION_HEIGHT = WIDTH_UNIT * 8
+ANSWER_SPACING_X = WIDTH_UNIT * 10
+ANSWER_SPACING_Y = WIDTH_UNIT * 3
+
+ANSWER_MARGIN_LEFT = (WINDOW_WIDTH - 2 * ANSWER_WIDTH - ANSWER_SPACING_X)//2
+ANSWER_MARGIN_TOP =  (WINDOW_HEIGHT - 2 * ANSWER_HEIGHT - ANSWER_SPACING_Y)//2
+
+QUESTION_MARGIN_LEFT = (WINDOW_WIDTH - QUESTION_WIDTH) * 0.5
+QUESTION_MARGIN_TOP = 100
+
+Q_AND_A = [
+    {'Q': 'The _ gate flips states', 'A': ['X', 'Z', 'Y', 'H'], 'C': 0},
+    {'Q': 'Pauli matrices are not all', 'A': ['Unitary', 'Diagonal', 'Hermitian', 'Self-adjoint'], 'C': 2},
+    {'Q': 'Quantum gates are not necessarily', 'A': ['Hermitian', 'Invertible', 'Unitary', 'Square'], 'C': 0},
+    {'Q': '<0|0>=', 'A': ['1', '0', '1/2', '<1|0>'], 'C': 0},
+    {'Q': '<0|1>=', 'A': ['0', '<1|1>', '<1|0>', '<0|0>'],'C': 0},
+    {'Q': 'Fermions have _ spin', 'A': ['no', 'half-integer', 'integer','half-odd integer'], 'C':3},
+    {'Q': 'X|+> =', 'A': ['|+>', '-|+>', '|->','-|->'], 'C': 0},
+    {'Q': 'Measurement makes a superposition', 'A': ['decompose', 'assemble', 'collapse','evaporate'], 'C' : 1}
+]
+
 # For circuit_grid.py
 GRID_WIDTH = WIDTH_UNIT * 4.96
 GRID_HEIGHT = GRID_WIDTH

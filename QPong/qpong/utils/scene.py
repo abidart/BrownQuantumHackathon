@@ -19,6 +19,7 @@ A container for managing game screens
 """
 
 import pygame
+import random
 
 from qpong.utils.parameters import (
     WIDTH_UNIT,
@@ -29,6 +30,17 @@ from qpong.utils.parameters import (
     EASY,
     NORMAL,
     EXPERT,
+    ANSWER_WIDTH,
+    ANSWER_HEIGHT,
+    ANSWER_MARGIN_LEFT,
+    ANSWER_MARGIN_TOP,
+    ANSWER_SPACING_X,
+    ANSWER_SPACING_Y,
+    QUESTION_HEIGHT,
+    QUESTION_MARGIN_LEFT,
+    QUESTION_MARGIN_TOP,
+    QUESTION_WIDTH,
+    Q_AND_A
 )
 from qpong.utils.colors import WHITE, BLACK, GRAY
 from qpong.utils import gamepad
@@ -43,12 +55,19 @@ class Scene:
     def __init__(self):
         super().__init__()
 
+        # get ball screen dimensions
+        self.screenheight = round(WINDOW_HEIGHT * 0.7)
+        self.screenwidth = WINDOW_WIDTH
+        self.width_unit = WIDTH_UNIT
+
         self.begin = False
         self.restart = False
         self.qubit_num = 3
         self.font = Font()
+        self.question_number = 0
+        self.answered_correct = 0
 
-    def start(self, screen, ball):
+    def start(self, screen):
         # pylint: disable=too-many-branches disable=too-many-return-statements
         """
         Show start screen
@@ -91,33 +110,11 @@ class Scene:
                 if event.type == pygame.QUIT:
                     pygame.quit()
                 elif event.type == pygame.JOYBUTTONDOWN:
-                    if event.button == gamepad.BTN_A:
-                        # easy mode
-                        ball.initial_speed_factor = EASY
-                        return True
-                    if event.button == gamepad.BTN_B:
-                        # normal mode
-                        ball.initial_speed_factor = NORMAL
-                        return True
-                    if event.button == gamepad.BTN_X:
-                        # expert mode
-                        ball.initial_speed_factor = EXPERT
-                        return True
+                    return True
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         return False
-                    if event.key == pygame.K_a:
-                        # easy mode
-                        ball.initial_speed_factor = EASY
-                        return True
-                    if event.key == pygame.K_b:
-                        # normal mode
-                        ball.initial_speed_factor = NORMAL
-                        return True
-                    if event.key == pygame.K_x:
-                        # expert mode
-                        ball.initial_speed_factor = EXPERT
-                        return True
+                    return True
 
             if self.begin:
                 # reset all parameters to restart the game
@@ -175,12 +172,11 @@ class Scene:
             self.credits(screen)
 
     @staticmethod
-    def dashed_line(screen, ball):
+    def dashed_line(screen):
         """
         Show dashed line diving the playing field
         """
-
-        for i in range(10, ball.screenheight, 2 * WIDTH_UNIT):  # draw dashed line
+        for i in range(10, 0, 2 * WIDTH_UNIT):  # draw dashed line
             pygame.draw.rect(
                 screen,
                 GRAY,
@@ -188,36 +184,57 @@ class Scene:
                 0,
             )
 
-    def score(self, screen, ball):
+
+    def questions(self, screen):
+        """
+        Show question box
+        """
+        pygame.draw.rect(screen, GRAY, (QUESTION_MARGIN_LEFT, QUESTION_MARGIN_TOP, QUESTION_WIDTH, QUESTION_HEIGHT), width=10)
+
+        text = self.font.player_font.render(Q_AND_A[self.question_number]['Q'], 1, WHITE)
+        text_pos = text.get_rect(
+            center=(QUESTION_MARGIN_LEFT + QUESTION_WIDTH * 0.5, QUESTION_MARGIN_TOP + QUESTION_HEIGHT * 0.5)
+        )
+        screen.blit(text, text_pos)
+
+
+        text = self.font.player_font.render("|0,0>", 1, WHITE)
+        text_pos = text.get_rect(
+            center=(ANSWER_MARGIN_LEFT * 0.8, ANSWER_MARGIN_TOP + ANSWER_HEIGHT * 0.5)
+        )
+        screen.blit(text, text_pos)
+
+        text = self.font.player_font.render("|0,1>", 1, WHITE)
+        text_pos = text.get_rect(
+            center=(ANSWER_MARGIN_LEFT + ANSWER_WIDTH * 2.25 + ANSWER_SPACING_X, ANSWER_MARGIN_TOP + ANSWER_HEIGHT * 0.5)
+        )
+        screen.blit(text, text_pos)
+
+        text = self.font.player_font.render("|1,0>", 1, WHITE)
+        text_pos = text.get_rect(
+            center=(ANSWER_MARGIN_LEFT * 0.8, ANSWER_MARGIN_TOP + ANSWER_HEIGHT * 1.5 + ANSWER_SPACING_Y)
+        )
+        screen.blit(text, text_pos)
+
+        text = self.font.player_font.render("|1,1>", 1, WHITE)
+        text_pos = text.get_rect(
+            center=(ANSWER_MARGIN_LEFT + ANSWER_WIDTH * 2.25 + ANSWER_SPACING_X, ANSWER_MARGIN_TOP + ANSWER_HEIGHT * 1.5 + ANSWER_SPACING_Y)
+        )
+        screen.blit(text, text_pos)
+
+
+    def score(self, screen):
         """
         Show score for both player
         """
         # Print the score
-        text = self.font.player_font.render("Classical Computer", 1, GRAY)
+        text = self.font.player_font.render(f"Score: {self.answered_correct}/{self.question_number}", 1, GRAY)
         text_pos = text.get_rect(
             center=(round(WINDOW_WIDTH * 0.25) + WIDTH_UNIT * 4.5, WIDTH_UNIT * 1.5)
         )
         screen.blit(text, text_pos)
 
-        text = self.font.player_font.render("Quantum Computer", 1, GRAY)
-        text_pos = text.get_rect(
-            center=(round(WINDOW_WIDTH * 0.75) - WIDTH_UNIT * 4.5, WIDTH_UNIT * 1.5)
-        )
-        screen.blit(text, text_pos)
 
-        score_print = str(ball.check_score(0))
-        text = self.font.score_font.render(score_print, 1, GRAY)
-        text_pos = text.get_rect(
-            center=(round(WINDOW_WIDTH * 0.25) + WIDTH_UNIT * 4.5, WIDTH_UNIT * 8)
-        )
-        screen.blit(text, text_pos)
-
-        score_print = str(ball.check_score(1))
-        text = self.font.score_font.render(score_print, 1, GRAY)
-        text_pos = text.get_rect(
-            center=(round(WINDOW_WIDTH * 0.75) - WIDTH_UNIT * 4.5, WIDTH_UNIT * 8)
-        )
-        screen.blit(text, text_pos)
 
     def credits(self, screen):
         """

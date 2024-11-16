@@ -25,7 +25,14 @@ from qpong.containers.vbox import VBox
 from qpong.viz.statevector_grid import StatevectorGrid
 from qpong.controls.circuit_grid import CircuitGrid
 
-from qpong.utils.parameters import WIDTH_UNIT, CIRCUIT_DEPTH
+from qpong.utils.parameters import (
+    ANSWER_WIDTH,
+    ANSWER_HEIGHT,
+    WIDTH_UNIT,
+    ANSWER_MARGIN_TOP,
+    ANSWER_MARGIN_LEFT,
+    CIRCUIT_DEPTH
+)
 
 
 class Level:
@@ -34,17 +41,16 @@ class Level:
     """
 
     def __init__(self):
-        self.level = 3  # game level
+        self.level = 2  # game level
         self.win = False  # flag for winning the game
-        self.left_paddle = pygame.sprite.Sprite()
-        self.right_paddle = pygame.sprite.Sprite()
+        self.selection = pygame.sprite.Sprite()
         self.circuit = None
         self.circuit_grid = None
         self.circuit_grid_model = None
         self.statevector_grid = None
         self.right_statevector = None
 
-    def setup(self, scene, ball):
+    def setup(self, scene):
         """
         Setup a level with a certain level number
         """
@@ -54,29 +60,19 @@ class Level:
         self.circuit = self.circuit_grid_model.construct_circuit()
         self.statevector_grid = StatevectorGrid(self.circuit, scene.qubit_num)
         self.right_statevector = VBox(
-            WIDTH_UNIT * 90, WIDTH_UNIT * 0, self.statevector_grid
+            ANSWER_MARGIN_LEFT, ANSWER_MARGIN_TOP, self.statevector_grid
         )
-        self.circuit_grid = CircuitGrid(0, ball.screenheight, self.circuit_grid_model)
-
-        # computer paddle
-
-        self.left_paddle.image = pygame.Surface(
-            [WIDTH_UNIT, int(round(ball.screenheight / 2**scene.qubit_num))]
-        )
-        self.left_paddle.image.fill((255, 255, 255))
-        self.left_paddle.image.set_alpha(255)
-        self.left_paddle.rect = self.left_paddle.image.get_rect()
-        self.left_paddle.rect.x = 9 * WIDTH_UNIT
+        self.circuit_grid = CircuitGrid(0, scene.screenheight, self.circuit_grid_model)
 
         # player paddle for detection of collision. It is invisible on the screen
 
-        self.right_paddle.image = pygame.Surface(
-            [WIDTH_UNIT, int(round(ball.screenheight / 2**scene.qubit_num))]
+        self.selection.image = pygame.Surface(
+            [ANSWER_WIDTH, ANSWER_HEIGHT]
         )
-        self.right_paddle.image.fill((255, 255, 255))
-        self.right_paddle.image.set_alpha(0)
-        self.right_paddle.rect = self.right_paddle.image.get_rect()
-        self.right_paddle.rect.x = self.right_statevector.xpos
+        self.selection.image.fill((255, 255, 255))
+        self.selection.image.set_alpha(0)
+        self.selection.rect = self.selection.image.get_rect()
+        self.selection.rect.x = self.right_statevector.xpos
 
     def levelup(self):
         """

@@ -22,8 +22,21 @@ import pygame
 
 from qiskit.quantum_info import Statevector
 
-from qpong.utils.colors import WHITE, BLACK
-from qpong.utils.parameters import WIDTH_UNIT
+from qpong.utils.colors import WHITE, BLACK, GRAY
+from qpong.utils.parameters import (
+    WIDTH_UNIT,
+    ANSWER_MARGIN_LEFT,
+    ANSWER_MARGIN_TOP,
+    ANSWER_WIDTH,
+    ANSWER_HEIGHT,
+    ANSWER_SPACING_X,
+    ANSWER_SPACING_Y,
+    QUESTION_MARGIN_LEFT,
+    QUESTION_MARGIN_TOP,
+    QUESTION_WIDTH,
+    QUESTION_HEIGHT,
+    Q_AND_A
+)
 from qpong.utils.states import comp_basis_states
 from qpong.utils.ball import Ball
 from qpong.utils.font import Font
@@ -43,12 +56,13 @@ class StatevectorGrid(pygame.sprite.Sprite):
         self.block_size = int(round(self.ball.screenheight / 2**qubit_num))
         self.basis_states = comp_basis_states(circuit.width())
         self.circuit = circuit
+        self.question_number = 0
 
-        self.paddle = pygame.Surface([WIDTH_UNIT, self.block_size])
-        self.paddle.fill(WHITE)
-        self.paddle.convert()
+        self.selection = pygame.Surface([ANSWER_WIDTH, ANSWER_HEIGHT])
+        pygame.draw.rect(self.selection, WHITE, (0, 0, ANSWER_WIDTH, ANSWER_HEIGHT), width=10)
+        self.selection.convert()
 
-        self.paddle_before_measurement(circuit, qubit_num)
+        self.selection_before_measurement(circuit, qubit_num)
 
     def display_statevector(self, qubit_num):
         """
@@ -63,31 +77,72 @@ class StatevectorGrid(pygame.sprite.Sprite):
             y_offset = self.block_size * 0.5 - text_height * 0.5
             self.image.blit(text, (2 * WIDTH_UNIT, qb_idx * self.block_size + y_offset))
 
-    def paddle_before_measurement(self, circuit, qubit_num):
+    def display_questions(self, screen):
+        """
+        Show question box
+        """
+        # pygame.draw.rect(screen, GRAY, (0, 0, QUESTION_WIDTH, QUESTION_HEIGHT), width=10)
+
+        # text = self.font.player_font.render(Q_AND_A[6]['Q'], 1, WHITE)
+        # text_pos = text.get_rect(
+        #     center=(QUESTION_WIDTH * 0.5, QUESTION_MARGIN_TOP + QUESTION_HEIGHT * 0.5)
+        # )
+        # screen.blit(text, text_pos)
+
+        """
+        Show option boxes
+        """
+        pygame.draw.rect(screen, GRAY, (0, 0, ANSWER_WIDTH, ANSWER_HEIGHT))
+        pygame.draw.rect(screen, GRAY, (ANSWER_SPACING_X + ANSWER_WIDTH, 0, ANSWER_WIDTH, ANSWER_HEIGHT))
+        pygame.draw.rect(screen, GRAY, (0,  ANSWER_SPACING_Y + ANSWER_HEIGHT, ANSWER_WIDTH, ANSWER_HEIGHT))
+        pygame.draw.rect(screen, GRAY, (ANSWER_SPACING_X + ANSWER_WIDTH, ANSWER_SPACING_Y + ANSWER_HEIGHT, ANSWER_WIDTH, ANSWER_HEIGHT))
+        """
+        Show option text
+        """
+        for i in range(4):
+            text = self.font.player_font.render(Q_AND_A[self.question_number]['A'][i], 1, WHITE)
+            x_pos = i % 2
+            y_pos = i // 2
+            text_pos = text.get_rect(
+                center=(ANSWER_WIDTH * 0.5 + (ANSWER_WIDTH + ANSWER_SPACING_X) * x_pos,
+                        ANSWER_HEIGHT * 0.5 + (ANSWER_HEIGHT + ANSWER_SPACING_Y) * y_pos)
+            )
+            screen.blit(text, text_pos)
+
+    def selection_before_measurement(self, circuit, qubit_num):
         """
         Get statevector from circuit, and set the
-        paddle(s) alpha values according to basis
+    .   selection(s) alpha values according to basis
         state(s) probabilitie(s)
         """
         self.update()
         self.display_statevector(qubit_num)
         quantum_state = Statevector(circuit)
 
-        for basis_state, ampl in enumerate(quantum_state):
-            self.paddle.set_alpha(int(round(abs(ampl) ** 2 * 255)))
-            self.image.blit(self.paddle, (0, basis_state * self.block_size))
+        self.image.blit(self.selection, (0, 0))
 
-    def paddle_after_measurement(self, circuit, qubit_num):
+        self.display_questions(self.image)
+
+
+        for basis_state, ampl in enumerate(quantum_state):
+            self.selection.set_alpha(int(round(abs(ampl) ** 2 * 255)))
+
+
+            x_coord = basis_state // 2
+            y_coord = basis_state % 2
+
+            x_pos = (ANSWER_SPACING_X + ANSWER_WIDTH) * x_coord
+            y_pos = (ANSWER_SPACING_Y + ANSWER_HEIGHT) * y_coord
+
+            self.image.blit(self.selection, (x_pos, y_pos))
+
+    def measure_state(self, circuit):
         """
         Measure all qubits on circuit
         """
-        self.update()
-        self.display_statevector(qubit_num)
         measurement_bitstring = Statevector(circuit).sample_memory(1)[0]
+        print(measurement_bitstring)
         measurement_int = int(measurement_bitstring, 2)
-
-        self.paddle.set_alpha(255)
-        self.image.blit(self.paddle, (0, measurement_int * self.block_size))
 
         return measurement_int
 
@@ -96,7 +151,7 @@ class StatevectorGrid(pygame.sprite.Sprite):
         Update statevector grid
         """
         self.image = pygame.Surface(
-            [(self.circuit.width() + 1) * 3 * WIDTH_UNIT, self.ball.screenheight]
+            [ANSWER_WIDTH*2 + ANSWER_SPACING_X, ANSWER_HEIGHT*2 + ANSWER_SPACING_Y]
         )
         self.image.convert()
         self.image.fill(BLACK)
