@@ -44,10 +44,10 @@ class CircuitGridModel:
     """
 
     def __init__(self, max_wires, max_columns):
-        self.max_wires = max_wires
+        self.max_wires = 5
         self.max_columns = max_columns
         self.nodes = np.full(
-            (max_wires, max_columns),
+            (self.max_wires, max_columns),
             CircuitGridNode(node_types.EMPTY),
             dtype=CircuitGridNode,
         )

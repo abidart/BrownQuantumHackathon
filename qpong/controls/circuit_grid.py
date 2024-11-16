@@ -42,7 +42,7 @@ class CircuitGrid(pygame.sprite.RenderPlain):
     """Enables interaction with circuit"""
 
     def __init__(self, xpos, ypos, circuit_grid_model):
-        self.xpos = xpos
+        self.xpos = xpos 
         self.ypos = ypos
         self.circuit_grid_model = circuit_grid_model
         self.selected_wire = 0
@@ -87,7 +87,7 @@ class CircuitGrid(pygame.sprite.RenderPlain):
                 ].rect.centerx = self.xpos + GRID_WIDTH * (col_idx + 1.5)
                 self.gate_tiles[row_idx][
                     col_idx
-                ].rect.centery = self.ypos + GRID_HEIGHT * (row_idx + 1.0)
+                ].rect.centery = self.ypos + GRID_HEIGHT * ((row_idx + 1) * 0.65)
 
         self.highlight_selected_node(self.selected_wire, self.selected_column)
 
@@ -109,7 +109,8 @@ class CircuitGrid(pygame.sprite.RenderPlain):
         )
         self.circuit_grid_cursor.rect.top = (
             self.ypos
-            + GRID_HEIGHT * (self.selected_wire + 0.5)
+            + 10
+            + GRID_HEIGHT * (self.selected_wire * 0.65)
             + round(0.375 * WIDTH_UNIT)
         )
 
@@ -139,7 +140,7 @@ class CircuitGrid(pygame.sprite.RenderPlain):
             self.selected_wire -= 1
         elif (
             direction == MOVE_DOWN
-            and self.selected_wire < self.circuit_grid_model.max_wires - 1
+            and self.selected_wire < 4
         ):
             self.selected_wire += 1
 
@@ -484,12 +485,12 @@ class CircuitGridBackground(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         pygame.draw.rect(self.image, BLACK, self.rect, LINE_WIDTH)
 
-        for wire_num in range(circuit_grid_model.max_wires):
+        for wire_num in range(6):
             pygame.draw.line(
                 self.image,
                 BLACK,
-                (GRID_WIDTH * 0.5, (wire_num + 1) * GRID_HEIGHT),
-                (self.rect.width - (GRID_WIDTH * 0.5), (wire_num + 1) * GRID_HEIGHT),
+                (GRID_WIDTH * 0.5, (wire_num * 0.65) * GRID_HEIGHT),
+                (self.rect.width - (GRID_WIDTH * 0.5), (wire_num * 0.65) * GRID_HEIGHT),
                 LINE_WIDTH,
             )
 
