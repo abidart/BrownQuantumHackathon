@@ -42,14 +42,19 @@ class CircuitGrid(pygame.sprite.RenderPlain):
     """Enables interaction with circuit"""
 
     def __init__(self, xpos, ypos, circuit_grid_model):
-        self.xpos = xpos 
+        self.xpos = xpos
         self.ypos = ypos
         self.circuit_grid_model = circuit_grid_model
         self.selected_wire = 0
         self.selected_column = 0
         self.circuit_grid_background = CircuitGridBackground(circuit_grid_model)
         self.circuit_grid_cursor = CircuitGridCursor()
+        self.music_grid_cursor = MusicGridCursor()  
         self.gate_tiles = np.empty(
+            (circuit_grid_model.max_wires, circuit_grid_model.max_columns),
+            dtype=CircuitGridGate,
+        )
+        self.music_tiles = np.empty(
             (circuit_grid_model.max_wires, circuit_grid_model.max_columns),
             dtype=CircuitGridGate,
         )
@@ -59,12 +64,17 @@ class CircuitGrid(pygame.sprite.RenderPlain):
                 self.gate_tiles[row_idx][col_idx] = CircuitGridGate(
                     circuit_grid_model, row_idx, col_idx
                 )
+                self.music_tiles[row_idx][col_idx] = CircuitGridGate(
+                    circuit_grid_model, row_idx, col_idx
+                )
 
         pygame.sprite.RenderPlain.__init__(
             self,
             self.circuit_grid_background,
             self.gate_tiles,
+            self.music_tiles,    
             self.circuit_grid_cursor,
+            self.music_grid_cursor
         )
         self.update()
 
@@ -89,6 +99,13 @@ class CircuitGrid(pygame.sprite.RenderPlain):
                     col_idx
                 ].rect.centery = self.ypos + GRID_HEIGHT * ((row_idx + 1) * 0.65)
 
+                self.music_tiles[row_idx][
+                    col_idx
+                ].rect.centerx = self.xpos + GRID_WIDTH * (col_idx + 1.5)
+                self.music_tiles[row_idx][
+                    col_idx
+                ].rect.centery = self.ypos + GRID_HEIGHT * ((row_idx + 1) * 0.65 - 200)
+
         self.highlight_selected_node(self.selected_wire, self.selected_column)
 
     def highlight_selected_node(self, wire_num, column_num):
@@ -107,8 +124,19 @@ class CircuitGrid(pygame.sprite.RenderPlain):
             + GRID_WIDTH * (self.selected_column + 1)
             + round(0.375 * WIDTH_UNIT)
         )
+        self.music_grid_cursor.rect.left = (
+            (self.xpos)
+            + GRID_WIDTH * (self.selected_column + 1)
+            + round(0.375 * WIDTH_UNIT)
+        )
         self.circuit_grid_cursor.rect.top = (
             self.ypos
+            + 10
+            + GRID_HEIGHT * (self.selected_wire * 0.65)
+            + round(0.375 * WIDTH_UNIT)
+        )
+        self.music_grid_cursor.rect.top = (
+            (self.ypos + 250)
             + 10
             + GRID_HEIGHT * (self.selected_wire * 0.65)
             + round(0.375 * WIDTH_UNIT)
@@ -136,7 +164,7 @@ class CircuitGrid(pygame.sprite.RenderPlain):
             and self.selected_column < self.circuit_grid_model.max_columns - 1
         ):
             self.selected_column += 1
-        elif direction == MOVE_UP and self.selected_wire > 0:
+        elif direction == MOVE_UP and self.selected_wire >= 0:
             self.selected_wire -= 1
         elif (
             direction == MOVE_DOWN
@@ -479,21 +507,29 @@ class CircuitGridBackground(pygame.sprite.Sprite):
     def __init__(self, circuit_grid_model):
         pygame.sprite.Sprite.__init__(self)
 
-        self.image = pygame.Surface([GRID_WIDTH * (18 + 2), GRID_HEIGHT * (3 + 1)])
+        self.image = pygame.Surface([GRID_WIDTH * (18 + 2), GRID_HEIGHT * (9 + 1)])
         self.image.convert()
         self.image.fill(WHITE)
         self.rect = self.image.get_rect()
         pygame.draw.rect(self.image, BLACK, self.rect, LINE_WIDTH)
 
-        for wire_num in range(6):
+        for wire_num in range(5):
             pygame.draw.line(
                 self.image,
-                BLACK,
+                MAGENTA,
                 (GRID_WIDTH * 0.5, (wire_num * 0.65) * GRID_HEIGHT),
                 (self.rect.width - (GRID_WIDTH * 0.5), (wire_num * 0.65) * GRID_HEIGHT),
                 LINE_WIDTH,
             )
 
+        for wire_num in range(5):
+            pygame.draw.line(
+                self.image,
+                BLACK,
+                (GRID_WIDTH * 0.5, 250 + (wire_num * 0.65) * GRID_HEIGHT),
+                (self.rect.width - (GRID_WIDTH * 0.5), 250 + (wire_num * 0.65) * GRID_HEIGHT),
+                LINE_WIDTH,
+            )
 
 class CircuitGridGate(pygame.sprite.Sprite):
     """
@@ -612,6 +648,16 @@ class CircuitGridGate(pygame.sprite.Sprite):
 
 class CircuitGridCursor(pygame.sprite.Sprite):
     """Cursor to highlight current grid node"""
+
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.image, self.rect = load_image(
+            "cursor_images/circuit-grid-cursor-medium.png", -1
+        )
+        self.image.convert_alpha()
+
+class MusicGridCursor(pygame.sprite.Sprite):
+    """Cursor to highlight current music node"""
 
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)

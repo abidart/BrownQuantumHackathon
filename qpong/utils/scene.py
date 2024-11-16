@@ -53,7 +53,7 @@ class Scene:
         Show start screen
         """
 
-        screen.fill(BLACK)
+        screen.fill(WHITE)
 
         gameover_text = "Quantum Composer"
         text = self.font.gameover_font.render(gameover_text, 1, WHITE)
@@ -83,7 +83,9 @@ class Scene:
 
             if self.begin:
                 # reset all parameters to restart the game
-                screen.fill(BLACK)
+                #
+                # screen.fill(BLACK)
+                pass
 
             pygame.display.flip()
 
@@ -96,7 +98,6 @@ class Scene:
         """
         if player == CLASSICAL_COMPUTER:
 
-            screen.fill(BLACK)
 
             gameover_text = "Game Over"
             text = self.font.gameover_font.render(gameover_text, 1, WHITE)
@@ -158,7 +159,7 @@ class Scene:
                 # show a black box to blink the text every 0.5s
                 pygame.draw.rect(
                     screen,
-                    BLACK,
+                    WHITE,
                     (
                         WIDTH_UNIT * 10,
                         WIDTH_UNIT * 35,

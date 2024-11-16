@@ -72,5 +72,5 @@ class StatevectorGrid(pygame.sprite.Sprite):
             [(self.circuit.width() + 1) * 3 * WIDTH_UNIT, 500]
         )
         self.image.convert()
-        self.image.fill(BLACK)
+        self.image.fill(WHITE)
         self.rect = self.image.get_rect()
